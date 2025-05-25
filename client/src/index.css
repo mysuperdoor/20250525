@@ -1,0 +1,253 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.site-layout-content {
+  min-height: calc(100vh - 64px - 70px);
+  padding: 24px;
+  background: #fff;
+}
+
+.ant-layout-header {
+  display: flex;
+  align-items: center;
+  padding: 0 !important;
+  height: 64px;
+  line-height: 64px;
+  background: #001529;
+}
+
+.header-logo {
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.header-menu {
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.user-dropdown {
+  color: #fff;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+.login-form {
+  max-width: 350px;
+  margin: 0 auto;
+}
+
+.login-form-button {
+  width: 100%;
+}
+
+.login-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f2f5;
+}
+
+.login-title {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.form-card {
+  width: 500px;
+  margin: 0 auto;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.tag-success {
+  color: #52c41a;
+}
+
+.tag-warning {
+  color: #faad14;
+}
+
+.tag-error {
+  color: #f5222d;
+}
+
+.ant-layout-footer {
+  text-align: center;
+}
+
+.ant-menu {
+  border-bottom: none !important;
+}
+
+.ant-layout-content {
+  margin: 0 24px;
+}
+
+/* 建议列表表格样式 */
+.suggestions-table .ant-table-thead > tr > th {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.suggestions-table .ant-table-tbody > tr > td {
+  font-size: 14px;
+}
+
+.suggestion-row:hover {
+  background-color: #f5f5f5;
+}
+
+/* 在这里添加媒体查询 */
+@media (max-width: 768px) {
+  /* 基础布局调整 */
+  .site-layout-content {
+    padding: 12px; /* 减小内边距 */
+  }
+
+  .ant-layout-content {
+    margin: 0 12px; /* 减小外边距 */
+  }
+
+  body {
+    font-size: 14px; /* 适当减小基础字体大小 */
+  }
+
+  /* 表单适配 */
+  .login-form {
+    max-width: 90%; /* 允许表单占据更大宽度比例 */
+  }
+
+  .form-card {
+    width: 95%; /* 允许卡片占据更大宽度比例 */
+    padding: 16px; /* 也可以适当减小卡片内边距 */
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  /* 表单字段在移动设备上垂直排列 */
+  .ant-form-inline .ant-form-item {
+    margin-right: 0;
+    margin-bottom: 16px;
+    width: 100%;
+  }
+
+  .ant-form-item-label {
+    display: block;
+    margin-bottom: 8px;
+    text-align: left;
+  }
+
+  /* 表格适配 */
+  .ant-table {
+    font-size: 13px;
+  }
+
+  /* 移动设备上减小表格内边距 */
+  .ant-table-cell {
+    padding: 8px !important;
+  }
+
+  /* 较窄的列可以缩小 */
+  .ant-table-column-sorter {
+    margin-left: 2px;
+  }
+
+  /* 表格内按钮调整 */
+  .ant-table .ant-btn {
+    padding: 0 8px;
+    font-size: 12px;
+    height: 24px;
+  }
+
+  /* 标签适配 */
+  .ant-tag {
+    margin-right: 4px;
+    margin-bottom: 4px;
+    padding: 2px 6px !important;
+    font-size: 12px !important;
+  }
+
+  /* 筛选下拉菜单适配 */
+  .ant-select {
+    width: 100% !important;
+  }
+
+  /* 按钮适配 */
+  .ant-btn {
+    padding: 4px 12px;
+    font-size: 14px;
+  }
+
+  /* 移动设备上表格操作按钮更紧凑 */
+  .ant-space {
+    gap: 4px !important;
+  }
+
+  /* 确保移动设备上的搜索框 */
+  .ant-input-search .ant-input {
+    padding-right: 30px;
+  }
+
+  /* 移动端行间距调整 */
+  .ant-table-tbody > tr > td {
+    padding: 8px !important;
+  }
+
+  /* 移动设备页头调整 */
+  .ant-page-header {
+    padding: 12px;
+  }
+
+  /* 移动设备弹窗适配 */
+  .ant-modal-content {
+    padding: 12px;
+  }
+
+  .ant-modal-header {
+    padding: 12px;
+  }
+
+  .ant-modal-footer {
+    padding: 8px 12px;
+  }
+
+  /* 响应式内容容器 */
+  .responsive-container {
+    padding: 12px !important;
+    overflow-x: auto;
+  }
+
+  /* 响应式Row和Col的间距 */
+  .ant-row {
+    margin-right: -8px !important;
+    margin-left: -8px !important;
+  }
+
+  .ant-col {
+    padding-right: 8px !important;
+    padding-left: 8px !important;
+  }
+} 

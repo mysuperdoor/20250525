@@ -1,0 +1,10 @@
+{"level":"info","message":"所有附件删除完成","module":"SuggestionController","suggestionId":"681e24be9c3393b99d582114","timestamp":"2025-05-09 23:52:53"}
+{"level":"info","message":"建议删除成功","module":"SuggestionController","suggestionId":"681e24be9c3393b99d582114","timestamp":"2025-05-09 23:52:53","userId":"681392413ab6c0153840e5d3","userRole":"部门经理"}
+{"level":"info","message":"所有附件删除完成","module":"SuggestionController","suggestionId":"681e8e5c9c3393b99d5821d9","timestamp":"2025-05-10 07:24:40"}
+{"level":"info","message":"建议删除成功","module":"SuggestionController","suggestionId":"681e8e5c9c3393b99d5821d9","timestamp":"2025-05-10 07:24:40","userId":"681392413ab6c0153840e5d3","userRole":"部门经理"}
+{"level":"info","message":"建议删除成功","module":"SuggestionController","suggestionId":"682436533931e53f405b6a40","timestamp":"2025-05-15 12:25:11","userId":"6809df8783d166d9f861c3a3","userRole":"部门经理"}
+{"level":"info","message":"建议删除成功","module":"SuggestionController","suggestionId":"682439173931e53f405b6c7b","timestamp":"2025-05-15 12:25:21","userId":"6809df8783d166d9f861c3a3","userRole":"部门经理"}
+{"cause":{"code":"ECONNREFUSED"},"connectionGeneration":5,"level":"error","message":"获取建议列表失败:","module":"SuggestionController","timestamp":"2025-05-15 20:03:24"}
+{"level":"info","message":"所有附件删除完成","module":"SuggestionController","suggestionId":"6826ce53f4c18c4b5e871eb9","timestamp":"2025-05-16 16:02:07"}
+{"level":"info","message":"建议删除成功","module":"SuggestionController","suggestionId":"6826ce53f4c18c4b5e871eb9","timestamp":"2025-05-16 16:02:07","userId":"681392413ab6c0153840e5d3","userRole":"部门经理"}
+{"level":"error","message":"重置建议评分失败:","module":"SuggestionController","timestamp":"2025-05-24 01:01:36"}

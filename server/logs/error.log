@@ -1,0 +1,2 @@
+{"cause":{"code":"ECONNREFUSED"},"connectionGeneration":5,"level":"error","message":"获取建议列表失败:","module":"SuggestionController","timestamp":"2025-05-15 20:03:24"}
+{"level":"error","message":"重置建议评分失败:","module":"SuggestionController","timestamp":"2025-05-24 01:01:36"}
