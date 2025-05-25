@@ -1,0 +1,17 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 前端代码结构
+
+系统前端入口文件是 [client/src/index.js](mdc:client/src/index.js)，
+该文件初始化React应用并渲染主组件 [client/src/App.js](mdc:client/src/App.js)。
+
+`client/src` 目录下的主要子目录:
+- [client/src/components/](mdc:client/src/components/): 包含可重用UI组件
+- [client/src/pages/](mdc:client/src/pages/): 包含代表不同页面或视图的组件
+- [client/src/services/](mdc:client/src/services/): 包含用于调用后端API的模块
+- [client/src/context/](mdc:client/src/context/): 包含React上下文提供器用于状态管理
+- [client/src/utils/](mdc:client/src/utils/): 包含前端通用工具函数
+- [client/src/constants/](mdc:client/src/constants/): 存储常量值

@@ -1,0 +1,77 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Project Constants and Data Storage Guide
+
+This document outlines key constants used throughout the project, where they are defined, and how their corresponding data is stored in the database. Understanding this is crucial for backend logic involving filtering, aggregation, and role-based access control.
+
+## 1. User Roles (`ROLES`)
+
+*   **Definition File**: User roles are defined as an object named `ROLES` in `[suggestion-system/server/models/User.js](mdc:suggestion-system/server/models/User.js)`.
+*   **Structure**:
+    *   The keys of the `ROLES` object are English identifiers (e.g., `DEPARTMENT_MANAGER`, `SAFETY_ADMIN`, `OPERATION_ADMIN`).
+    *   The values of the `ROLES` object are the corresponding **Chinese display names** (e.g., `'部门经理'`, `'安全科管理人员'`, `'运行科管理人员'`).
+    ```javascript
+    // Example from User.js
+    const ROLES = {
+      DEPARTMENT_MANAGER: '部门经理',
+      SHIFT_SUPERVISOR: '值班主任',
+      SAFETY_ADMIN: '安全科管理人员',
+      OPERATION_ADMIN: '运行科管理人员',
+      TEAM_MEMBER: '班组人员'
+    };
+    ```
+*   **Database Storage**: In the `users` collection, the `role` field for each user document stores the **Chinese display name** (e.g., `'安全科管理人员'`). This is enforced by `enum: Object.values(ROLES)` in the User schema.
+*   **Backend Usage**:
+    *   When performing role checks in backend logic (e.g., in `[suggestion-system/server/routes/reports.js](mdc:suggestion-system/server/routes/reports.js)` or controllers), comparisons should be made between the `user.role` property (which holds the Chinese name from the database) and the values from the `ROLES` object (e.g., `user.role === ROLES.SAFETY_ADMIN`). Since `ROLES.SAFETY_ADMIN` evaluates to `'安全科管理人员'`, this comparison works correctly.
+
+## 2. Suggestion Types (`SUGGESTION_TYPES`)
+
+*   **Primary Definition File (Client-side)**: Suggestion types are primarily defined in `[suggestion-system/client/src/constants/suggestions.js](mdc:suggestion-system/client/src/constants/suggestions.js)`. These are often key-value pairs where keys are English identifiers and values are Chinese display names.
+    ```javascript
+    // Example structure from client/src/constants/suggestions.js
+    // export const SUGGESTION_TYPES = {
+    //   SAFETY: '安全管理',
+    //   OPERATIONS: '运行管理',
+    //   // ... other types
+    // };
+    ```
+*   **Backend Model (`Suggestion.js`)**: The backend model `[suggestion-system/server/models/Suggestion.js](mdc:suggestion-system/server/models/Suggestion.js)` imports and re-exports `SUGGESTION_TYPES` (and other status constants) from the client-side constants, or may have them defined directly if structures diverge.
+*   **Database Storage**: In the `suggestions` collection, the `type` field for each suggestion document stores the **English key** (e.g., `'SAFETY'`, `'OPERATIONS'`, `'KEXIN_AUTOMATION'`).
+*   **Backend Usage**:
+    *   When filtering suggestions by type in backend logic (e.g., in `[suggestion-system/server/routes/reports.js](mdc:suggestion-system/server/routes/reports.js)` or `[suggestion-system/server/controllers/suggestionController.js](mdc:suggestion-system/server/controllers/suggestionController.js)`), comparisons and queries should use the **English keys** directly as string literals (e.g., `queryConditions.type = 'SAFETY';`) or constants that resolve to these English keys.
+
+## 3. Suggestion Statuses (`REVIEW_STATUS`, `IMPLEMENTATION_STATUS`)
+
+*   **Primary Definition File (Client-side)**: Suggestion review statuses (`REVIEW_STATUS`) and implementation statuses (`IMPLEMENTATION_STATUS`) are primarily defined in `[suggestion-system/client/src/constants/suggestions.js](mdc:suggestion-system/client/src/constants/suggestions.js)`. These are typically key-value pairs.
+    ```javascript
+    // Example structure from client/src/constants/suggestions.js
+    // export const REVIEW_STATUS = {
+    //   PENDING_FIRST_REVIEW: '待一级审核',
+    //   APPROVED: '已批准',
+    //   // ... other review statuses
+    // };
+    // export const IMPLEMENTATION_STATUS = {
+    //   NOT_STARTED: '未开始',
+    //   COMPLETED: '已完成',
+    //   // ... other implementation statuses
+    // };
+    ```
+*   **Backend Model (`Suggestion.js`)**: Similar to `SUGGESTION_TYPES`, the backend model `[suggestion-system/server/models/Suggestion.js](mdc:suggestion-system/server/models/Suggestion.js)` imports and re-exports these status constants.
+*   **Database Storage**: In the `suggestions` collection:
+    *   The `reviewStatus` field stores the **English key** (e.g., `'PENDING_FIRST_REVIEW'`, `'APPROVED'`).
+    *   The `implementationStatus` field stores the **English key** (e.g., `'NOT_STARTED'`, `'COMPLETED'`).
+*   **Backend Usage**:
+    *   When filtering or aggregating suggestions by status in backend logic (e.g., in `[suggestion-system/server/routes/reports.js](mdc:suggestion-system/server/routes/reports.js)` or `[suggestion-system/server/controllers/suggestionController.js](mdc:suggestion-system/server/controllers/suggestionController.js)`), comparisons and queries should use the **English keys** directly as string literals (e.g., `reviewStatus: 'PENDING_FIRST_REVIEW'`) or constants that resolve to these English keys.
+
+## Summary of Database Storage vs. Constants:
+
+| Feature                | Constant Definition (`ROLES`, `SUGGESTION_TYPES`, etc.) | Database Field Storage (`user.role`, `suggestion.type`, etc.) | Backend Comparison Logic                                     |
+|------------------------|-------------------------------------------------------|---------------------------------------------------------------|--------------------------------------------------------------|
+| User Roles             | Keys: English, Values: **Chinese**                    | **Chinese Name** (e.g., `'安全科管理人员'`)                 | `user.role === ROLES.XXX` (evaluates to Chinese === Chinese) |
+| Suggestion Types       | Keys: English, Values: Chinese                        | **English Key** (e.g., `'SAFETY'`)                          | `suggestion.type === 'SAFETY'` (or equivalent constant)        |
+| Suggestion Statuses    | Keys: English, Values: Chinese                        | **English Key** (e.g., `'PENDING_FIRST_REVIEW'`)            | `suggestion.reviewStatus === 'PENDING_FIRST_REVIEW'`       |
+
+Understanding these distinctions is vital for correct data handling and logic implementation in the backend.

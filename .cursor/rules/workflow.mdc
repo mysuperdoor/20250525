@@ -1,0 +1,105 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 合理化建议业务流程
+
+## 状态定义
+系统中的建议状态定义在 [client/src/constants/suggestions.js](mdc:client/src/constants/suggestions.js) 文件中，主要包括：
+- 审核状态 (REVIEW_STATUS): `PENDING_FIRST_REVIEW`, `PENDING_SECOND_REVIEW`, `APPROVED`, `REJECTED`, `WITHDRAWN`
+- 实施状态 (IMPLEMENTATION_STATUS): `NOT_IMPLEMENTED`, `CONTACTING`, `IN_PROGRESS`, `COMPLETED`, `DELAYED`, `CANCELLED`
+
+## 核心建议流程
+
+### 1. 建议创建 (Suggestion Creation)
+- **执行者**: 班组人员 (TEAM_MEMBER)
+- **操作**:
+    - 用户在 [client/src/pages/Suggestions/New.js](mdc:client/src/pages/Suggestions/New.js) 页面填写建议的标题、内容、选择建议类型（调度安全类、设备电气类、设备机械类、科信自动化类、科信监控类、其它类）、填写预期效果。
+    - 用户可以上传图片、文档等相关附件。
+- **结果**: 建议提交后，其 `reviewStatus` 设置为 `PENDING_FIRST_REVIEW` (等待一级审核)。
+
+### 2. 一级审核 (First-Level Review)
+- **执行者**: 值班主任 (SHIFT_SUPERVISOR) - 仅能审核其所在班组提交的建议。
+- **操作**:
+    - 值班主任在 [client/src/pages/Suggestions/Review/index.js](mdc:client/src/pages/Suggestions/Review/index.js) 页面对状态为 `PENDING_FIRST_REVIEW` 的建议进行审核。
+    - 审核结果可为：
+        - **通过**: 建议的 `reviewStatus` 更新为 `PENDING_SECOND_REVIEW` (等待二级审核)。
+        - **驳回**: 建议的 `reviewStatus` 更新为 `REJECTED` (已驳回)，流程终止。
+- **数据记录**: 审核信息（审核人、结果、意见、时间）记录在建议的 `firstReview` 字段中。
+
+### 3. 二级审核 (Second-Level Review)
+- **执行者**:
+    - 安全科管理人员 (SAFETY_ADMIN): 负责审核类型为"调度安全类 (SAFETY)"的建议。
+    - 运行科管理人员 (OPERATION_ADMIN): 负责审核所有其他非安全类型的建议。
+- **操作**:
+    - 管理人员在 [client/src/pages/Suggestions/Review/index.js](mdc:client/src/pages/Suggestions/Review/index.js) 页面对状态为 `PENDING_SECOND_REVIEW` 的建议进行审核。
+    - 审核结果可为：
+        - **通过**: 建议的 `reviewStatus` 更新为 `APPROVED` (已批准)。建议的 `implementationStatus` 初始化为 `NOT_IMPLEMENTED` (已批准待实施)，准备进入实施阶段。
+        - **驳回**: 建议的 `reviewStatus` 更新为 `REJECTED` (已驳回)，流程终止。
+- **数据记录**: 审核信息记录在建议的 `secondReview` 字段中。
+
+### 4. 建议实施 (Suggestion Implementation)
+- **执行者**:
+    - 安全科管理人员 (SAFETY_ADMIN): 更新安全类建议的实施状态。
+    - 运行科管理人员 (OPERATION_ADMIN): 更新非安全类建议的实施状态。
+    - 部门经理 (DEPARTMENT_MANAGER): 可管理所有建议的实施。
+- **操作**:
+    - 相关管理人员在 [client/src/pages/Suggestions/Implementation/index.js](mdc:client/src/pages/Suggestions/Implementation/index.js) 页面更新建议的实施信息，包括分配责任人、更新实施状态、填写备注、记录开始/计划完成/实际完成日期等。
+- **实施状态流转**:
+    - `NOT_IMPLEMENTED` (已批准待实施) → `CONTACTING` (联系中)
+    - `CONTACTING` (联系中) → `IN_PROGRESS` (实施中)
+    - `IN_PROGRESS` (实施中) → `COMPLETED` (已完成) / `DELAYED` (延期) / `CANCELLED` (已取消)
+    - `DELAYED` (延期) → `IN_PROGRESS` (实施中) / `COMPLETED` (已完成) / `CANCELLED` (已取消)
+    - `CANCELLED` (已取消) → `CONTACTING` (联系中) (允许取消后重新激活并联系)
+- **数据记录**: 详细实施信息和历史记录在建议的 `implementation` 字段中。
+
+### 5. 建议评分 (Suggestion Scoring)
+- **执行者**: 部门经理 (DEPARTMENT_MANAGER)
+- **操作**: 部门经理可以对已完成或有显著进展的建议进行评分。
+- **评分标准**: 分数为 0-10 之间，允许0.5的倍数。
+- **数据记录**: 评分信息（分数、评分人、评分人角色、评分时间、历史）记录在建议的 `scoring` 字段中。
+
+## 状态流转总览图
+
+```
+┌─────────┐  一级审核  ┌───────────────────┐  二级审核  ┌──────────┐  进入实施  ┌───────────┐
+│  提 交  ├─────────►│ 等待二级审核      ├─────────►│ 已批准   ├──────────►│  未开始   │
+│ (班组人员)│           │(PENDING_SECOND_REVIEW)│           │(APPROVED)│            │(NOT_IMPLEMENTED)│
+└─────────┘           └───────────────────┘           └──────────┘            └───────────┘
+    │ (值班主任操作)             ↑                            │                       │
+    │                         │ (修改后可重新进入流程)      │ (管理员操作)          │ (管理员操作)
+    ├─► 等待一级审核             │                            └────────┐              ├─► 联系中
+    │ (PENDING_FIRST_REVIEW)   │                                     │              │(CONTACTING)
+    │                         │                                     │              │
+    └─► 已驳回 (REJECTED)◄─────┘                                     │              ├─► 已取消
+         (一级或二级审核)  │                                         │              │(CANCELLED)
+                          │                                         │              │   ↑ │
+                          │                                         │              │   │ │
+                          └── 修改后重新提交(提交者修改)──►          │              └─► 实施中
+                                                                  │                  (IN_PROGRESS)
+                                                                  │                      │ ▲
+                                                                  │                      │ │
+                                                                  │                   ┌──┴─┴──┐
+                                                                  │                   │ 已延期│
+                                                                  │                   │(DELAYED)│
+                                                                  │                   └───────┘
+                                                                  │                      │
+                                                                  └─────────────────────► 已完成
+                                                                                       (COMPLETED)
+                                                                                            │
+                                                                                            │ (部门经理操作)
+                                                                                       ┌───▼───┐
+                                                                                       │ 已评分│
+                                                                                       │(SCORED)│
+                                                                                       └───────┘
+```
+
+## 建议类型
+系统支持以下建议类型:
+- 调度安全类 (SAFETY)
+- 设备电气类 (ELECTRICAL)
+- 设备机械类 (MECHANICAL)
+- 科信自动化类 (KEXIN_AUTOMATION)
+- 科信监控类 (KEXIN_MONITORING)
+- 其它类 (OTHER)

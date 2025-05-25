@@ -1,0 +1,87 @@
+# 建议审核流程
+
+本规则描述了合理化建议系统中的审核流程，包括前端界面和后端API的交互。系统支持两级审核流程：一级审核（值班主任）和二级审核（安全科管理人员/运行科管理人员）。
+
+## 审核权限控制
+
+审核权限严格基于用户角色：
+
+1. **一级审核权限**：
+   - 值班主任：只能审核自己班组的建议
+   - 部门经理：可以审核所有建议
+
+2. **二级审核权限**：
+   - 安全科管理人员：只能审核安全类建议
+   - 运行科管理人员：只能审核非安全类建议
+   - 部门经理：可以审核所有建议
+
+## 审核前端实现
+
+系统提供两个页面进行审核：
+
+1. **专用审核页面** - [Review/index.js](mdc:suggestion-system/client/src/pages/Suggestions/Review/index.js)
+   - 分为"一级审核"和"二级审核"两个标签页
+   - 显示所有待审核建议列表（根据用户权限过滤）
+   - 提供"审核"按钮，点击弹出审核表单
+
+2. **建议详情页面** - [Detail.js](mdc:suggestion-system/client/src/pages/Suggestions/Detail.js)
+   - 在查看建议详情的同时提供审核功能
+   - 根据建议状态和用户权限显示"一级审核"或"二级审核"按钮
+
+## 审核表单数据处理
+
+审核表单在两个页面上的处理方式必须保持一致：
+
+```javascript
+// 审核数据格式 - 两个页面必须保持一致！
+const reviewData = {
+  suggestionId: id,
+  reviewType: 'first', // 或 'second'
+  result: values.result === 'approve' ? 'APPROVED' : 'REJECTED', // 重要！必须转换格式
+  comment: values.comment,
+  reviewerId: currentUser._id
+};
+```
+
+## 审核API交互
+
+前端通过 [suggestionService.js](mdc:suggestion-system/client/src/services/suggestionService.js) 中的 `submitReview` 方法提交审核结果：
+
+```javascript
+// 提交审核
+submitReview: async (reviewData) => {
+  try {
+    const response = await api.post('/suggestions/review', reviewData);
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}
+```
+
+后端在 [suggestionController.js](mdc:suggestion-system/server/controllers/suggestionController.js) 中处理审核请求：
+
+```javascript
+exports.submitReview = async (req, res) => {
+  // 参数：suggestionId, reviewType(first/second), result(APPROVED/REJECTED), comment
+  // 处理审核结果并更新建议状态
+};
+```
+
+## 状态转换流程
+
+审核会引起建议状态的转换：
+
+1. **一级审核**：
+   - 通过：PENDING_FIRST_REVIEW → PENDING_SECOND_REVIEW
+   - 拒绝：PENDING_FIRST_REVIEW → REJECTED
+
+2. **二级审核**：
+   - 通过：PENDING_SECOND_REVIEW → APPROVED (实施状态为NOT_IMPLEMENTED)
+   - 拒绝：PENDING_SECOND_REVIEW → REJECTED
+
+## 审核后处理
+
+1. 审核完成后前端页面会自动刷新建议详情
+2. 如果从审核列表页面进入，审核完成后会自动返回审核列表
+3. 建议被驳回后可以被原提交者修改并重新提交（参见[suggestion_edit_workflow.mdc](mdc:.cursor/rules/suggestion_edit_workflow.mdc)）

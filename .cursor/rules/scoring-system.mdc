@@ -1,0 +1,50 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 建议评分系统
+
+## 评分功能概述
+
+建议评分系统允许管理人员对已批准的建议进行评分，以便量化建议的价值和质量。评分结果用于绩效考核和奖励分配。
+
+## 评分权限
+
+- **部门经理**: 可以评分所有类型的建议
+- **安全科管理人员**: 只能评分安全类建议
+- **运行科管理人员**: 只能评分非安全类建议
+
+## 评分规则
+
+- 评分范围: 0.5-5分
+- 最小评分单位: 0.5分
+- 评分标准: 创新性、实用性、效益性、完整性、可行性
+
+## 评分重置功能
+
+部门经理拥有重置评分的特权，可以将错误的评分完全清除，使建议恢复到未评分状态。
+
+## 相关代码
+
+### 后端
+
+- 评分功能: [suggestionController.js#L1628-L1737](mdc:suggestion-system/server/controllers/suggestionController.js#L1628-L1737)
+- 重置评分功能: [suggestionController.js#L1739-L1788](mdc:suggestion-system/server/controllers/suggestionController.js#L1739-L1788)
+
+### 前端
+
+- 评分UI组件: [Detail.js#L1034-L1099](mdc:suggestion-system/client/src/pages/Suggestions/Detail.js#L1034-L1099)
+- 评分服务: [suggestionService.js#L448-L472](mdc:suggestion-system/client/src/services/suggestionService.js#L448-L472)
+
+## 数据结构
+
+```javascript
+// 评分数据结构
+scoring: {
+  score: Number,          // 评分值 (0.5-5)
+  scorer: ObjectId,       // 评分人ID
+  scorerRole: String,     // 评分人角色
+  scoredAt: Date          // 评分时间
+}
+```

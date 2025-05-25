@@ -1,0 +1,78 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 数据模型结构
+
+## 用户模型 (User)
+用户模型定义在 [server/models/User.js](mdc:server/models/User.js) 中:
+
+主要字段:
+- `username`: 用户名
+- `password`: 密码(加密存储)
+- `name`: 姓名
+- `role`: 角色
+- `team`: 班组
+- `department`: 部门
+- `active`: 是否激活
+
+## 建议模型 (Suggestion)
+建议模型定义在 [server/models/Suggestion.js](mdc:server/models/Suggestion.js) 中:
+
+主要字段:
+- `title`: 建议标题
+- `type`: 建议类型
+- `content`: 建议内容
+- `expectedBenefit`: 预期效果
+- `attachments`: 附件数组
+- `submitter`: 提交人(引用User)
+- `team`: 班组
+- `reviewStatus`: 审核状态
+- `implementationStatus`: 实施状态 ('NOT_IMPLEMENTED', 'CONTACTING', 'IN_PROGRESS', 'COMPLETED', 'DELAYED', 'CANCELLED')
+- `firstReview`: 一级审核信息
+- `secondReview`: 二级审核信息
+- `implementation`: 实施信息
+- `comments`: 评论数组
+- `scoring`: 打分信息
+  - `score`: 分数 (0-10分, 允许0.5的倍数)
+  - `scorer`: 评分人 (引用User)
+  - `scorerRole`: 评分人角色
+  - `scoredAt`: 评分时间
+  - `history`: 评分历史记录数组
+
+### 子模型结构
+
+#### 附件模型 (Attachment)
+- `filename`: 服务器存储文件名
+- `originalname`: 原始文件名
+- `path`: 存储路径
+- `mimetype`: 文件MIME类型
+- `size`: 文件大小
+- `uploadedAt`: 上传时间
+
+#### 审核模型 (Review)
+- `reviewer`: 审核人
+- `result`: 审核结果 ('APPROVED', 'REJECTED', 'PENDING')
+- `comments`: 审核意见
+- `reviewedAt`: 审核时间
+
+#### 评论模型 (Comment)
+- `content`: 评论内容
+- `author`: 评论作者
+- `createdAt`: 创建时间
+
+#### 实施模型 (Implementation)
+- `status`: 实施状态 ('NOT_IMPLEMENTED', 'CONTACTING', 'IN_PROGRESS', 'COMPLETED', 'DELAYED', 'CANCELLED')
+- `responsiblePerson`: 责任人
+- `startDate`: 开始时间
+- `plannedEndDate`: 计划完成时间
+- `actualEndDate`: 实际完成时间
+- `notes`: 备注
+- `history`: 历史记录数组
+
+## 数据流转
+建议数据在前后端间的流转:
+1. 创建: [server/routes/suggestions.js](mdc:server/routes/suggestions.js)
+2. 审核: [server/controllers/suggestionController.js](mdc:server/controllers/suggestionController.js)
+3. 实施管理: [client/src/pages/Suggestions/Implementation/index.js](mdc:client/src/pages/Suggestions/Implementation/index.js)

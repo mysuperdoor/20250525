@@ -1,0 +1,112 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 建议编辑和重新提交流程
+
+本文档描述了合理化建议系统中的建议编辑流程，特别是已驳回建议的修改和重新提交机制。
+
+## 建议编辑权限
+
+建议的编辑权限受以下条件限制：
+
+1. **编辑者限制**：只有建议的原始提交者可以编辑建议
+2. **状态限制**：只有处于以下状态的建议可以被编辑：
+   - `PENDING_FIRST_REVIEW`（等待一级审核）
+   - `REJECTED`（已驳回）- 无论是在一级还是二级审核中被驳回
+
+## 驳回建议的编辑和重新提交流程
+
+当建议在审核过程中被驳回后，系统允许原始提交者对其进行修改并重新提交审核：
+
+1. **前端显示**：当建议状态为"已驳回"且当前用户是建议提交者时，在[建议详情页面](mdc:suggestion-system/client/src/pages/Suggestions/Detail.js)会显示"编辑建议"按钮
+2. **修改处理**：
+   - 用户修改建议内容（标题、类型、内容、预期效益等）
+   - 用户需要填写修改原因，系统会记录在建议的评论中
+3. **状态转换**：
+   - 当被驳回的建议被修改后，系统自动将状态从`REJECTED`（已驳回）重置为`PENDING_FIRST_REVIEW`（等待一级审核）
+   - 状态转换逻辑在[suggestionController.js](mdc:suggestion-system/server/controllers/suggestionController.js)的`updateSuggestion`函数中实现
+4. **审核流程**：修改后的建议会重新从一级审核开始，确保审核流程的完整性
+
+## 状态转换和流程规则
+
+审核状态的转换规则定义在[suggestions.js](mdc:suggestion-system/client/src/constants/suggestions.js)的`REVIEW_STATUS_TRANSITIONS`常量中：
+
+```javascript
+export const REVIEW_STATUS_TRANSITIONS = {
+  PENDING_FIRST_REVIEW: ['APPROVED', 'REJECTED'],
+  PENDING_SECOND_REVIEW: ['APPROVED', 'REJECTED'],
+  APPROVED: [],
+  REJECTED: ['PENDING_FIRST_REVIEW'],
+};
+```
+
+这确保了：
+- 待一级审核的建议可以被批准或拒绝
+- 待二级审核的建议可以被批准或拒绝
+- 已批准的建议不能改变状态（只能进入实施流程）
+- 已驳回的建议可以转回待一级审核状态（通过修改重新提交）
+
+## 关键实现代码
+
+### 前端编辑按钮条件判断
+
+[Detail.js](mdc:suggestion-system/client/src/pages/Suggestions/Detail.js)中的按钮渲染逻辑：
+
+```javascript
+// 编辑按钮 (如果用户是提交者且状态为待一级审核或已驳回)
+const isRejected = currentStatus === 'REJECTED';
+if (currentUser && suggestion && suggestion.submitter && 
+    currentUser._id === suggestion.submitter._id && 
+    (isPendingFirstReview || isRejected)) {
+  actions.push(
+    <Button key="edit" icon={<EditOutlined />} onClick={showEditModal} style={{ marginLeft: 8 }}>
+      编辑建议
+    </Button>
+  );
+}
+```
+
+### 后端处理逻辑
+
+[suggestions.js](mdc:suggestion-system/server/routes/suggestions.js)中的编辑权限检查：
+
+```javascript
+// 直接使用字符串比较，避免使用可能未定义的常量
+if (suggestion.reviewStatus !== 'PENDING_FIRST_REVIEW' && suggestion.reviewStatus !== 'REJECTED') {
+  return res.status(400).json({ msg: '建议已进入审核流程，无法修改' });
+}
+
+// 如果建议被驳回，则将状态改回待一级审核状态
+if (suggestion.reviewStatus === 'REJECTED') {
+  suggestion.reviewStatus = 'PENDING_FIRST_REVIEW';
+  suggestion.status = 'PENDING_FIRST_REVIEW';
+}
+```
+
+[suggestionController.js](mdc:suggestion-system/server/controllers/suggestionController.js)中的状态转换处理：
+
+```javascript
+// 如果建议被驳回，则将状态改回待一级审核状态
+if (suggestion.reviewStatus === 'REJECTED') {
+  suggestion.reviewStatus = 'PENDING_FIRST_REVIEW';
+  suggestion.status = 'PENDING_FIRST_REVIEW';
+  
+  // 添加状态变更记录
+  suggestion.comments.push({
+    content: '建议已修改并重新提交审核',
+    author: userId,
+    createdAt: new Date()
+  });
+}
+```
+
+## 修改记录保存
+
+系统会在建议的`comments`字段记录修改历史，包括：
+1. 修改原因（用户提供）
+2. 状态变更记录（系统自动添加）
+3. 修改人和修改时间
+
+这些记录显示在建议详情页面的"修改记录"部分，方便追踪建议变更过程。

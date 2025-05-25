@@ -1,0 +1,38 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 建议系统概述
+
+这是一个完整的建议管理系统，分为前端和后端两部分。
+
+## 系统架构
+
+- 前端: React应用，位于 `suggestion-system/client/` 目录
+- 后端: Node.js + Express + MongoDB，位于 `suggestion-system/server/` 目录
+
+## 核心功能
+
+1. 建议提交与管理
+2. 多级审核流程（一级审核、二级审核）
+3. 建议实施跟踪
+4. 建议评分系统
+5. 报表与统计分析
+
+## 关键文件
+
+### 前端
+- 主页面: [suggestion-system/client/src/pages/Suggestions/Detail.js](mdc:suggestion-system/client/src/pages/Suggestions/Detail.js)
+- API服务: [suggestion-system/client/src/services/suggestionService.js](mdc:suggestion-system/client/src/services/suggestionService.js)
+
+### 后端
+- 控制器: [suggestion-system/server/controllers/suggestionController.js](mdc:suggestion-system/server/controllers/suggestionController.js)
+
+## 用户角色
+
+- 班组人员: 提交建议
+- 值班主任: 一级审核
+- 安全科管理人员: 二级审核(安全类建议)
+- 运行科管理人员: 二级审核(非安全类建议)
+- 部门经理: 全部权限，包括评分和重置评分

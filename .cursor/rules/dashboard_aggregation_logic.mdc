@@ -1,0 +1,47 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Dashboard Data Aggregation Logic Guide
+
+This document explains the logic within the `/api/reports/dashboard` endpoint, primarily handled by `[suggestion-system/server/routes/reports.js](mdc:suggestion-system/server/routes/reports.js)`. It details how various statistics for the user dashboard are calculated, especially focusing on role-based filtering and the use of status and type constants.
+
+For definitions of `ROLES`, `SUGGESTION_TYPES`, `REVIEW_STATUS`, and `IMPLEMENTATION_STATUS`, and how their corresponding data is stored in the database, please refer to the `[project_constants_and_data_storage.mdc](mdc:.cursor/rules/project_constants_and_data_storage.mdc)` rule.
+
+## Key Components of Dashboard Logic in `reports.js`
+
+1.  **User Role Determination and Base `queryConditions`**:
+    *   The system first identifies the current user and their role (e.g., `user.role`).
+    *   Based on `user.role`, initial `queryConditions` for MongoDB aggregation are set. This comparison uses `ROLES` constants from `[suggestion-system/server/models/User.js](mdc:suggestion-system/server/models/User.js)` (e.g., `user.role === ROLES.SHIFT_SUPERVISOR`). As detailed in the `project_constants_and_data_storage` rule, `user.role` from the DB is a Chinese name, and `ROLES.XXX` evaluates to the same Chinese name, ensuring correct matching.
+        *   `TEAM_MEMBER`: Filters by `submitter: userId`.
+        *   `SHIFT_SUPERVISOR`: Filters by `team: user.team`.
+        *   `SAFETY_ADMIN`: Filters by `type: 'SAFETY'`. Note: This uses the **English literal string** `'SAFETY'` for the suggestion type, consistent with database storage.
+        *   `OPERATION_ADMIN`: Filters by `type: { $ne: 'SAFETY' }`. Also uses the **English literal string** for type comparison.
+        *   Other roles (like `DEPARTMENT_MANAGER`) might start with empty `queryConditions`, implying access to all suggestions within their general scope before further specific calculations.
+
+2.  **Overall Status Counts (`statusCountsAggregation`)**:
+    *   This aggregation pipeline runs on suggestions matching the `queryConditions`.
+    *   A crucial `$project` stage with a `$switch` statement determines a `currentDisplayStatus` for each suggestion. This mapping is vital for grouping and counting suggestions by a unified set of dashboard-specific statuses.
+    *   The `$switch` conditions directly compare `implementationStatus` and `reviewStatus` fields from the database against **English literal strings** (e.g., `'$implementationStatus', 'COMPLETED'`, `'$reviewStatus', 'PENDING_FIRST_REVIEW'`). This is because suggestion statuses are stored as English keys in the database.
+    *   Example mapping in `$switch`:
+        *   `COMPLETED` -> `'COMPLETED'`
+        *   `IN_PROGRESS` (and similar implementation statuses) -> `'IMPLEMENTING'`
+        *   `PENDING_SECOND_REVIEW` -> `'PENDING_SECOND_REVIEW'`
+        *   `APPROVED` reviewStatus combined with `NOT_IMPLEMENTED` (or similar) implementationStatus -> `'NOT_IMPLEMENTED'`
+
+3.  **Pending Review Count (`pendingReviewFilter` and `pendingReviewCount`)**:
+    *   This calculation determines the number of suggestions specifically awaiting the current user's review action.
+    *   `pendingReviewFilter` is constructed differently based on `user.role`:
+        *   `SHIFT_SUPERVISOR`: Filters for their `team` AND `reviewStatus` is `'PENDING_FIRST_REVIEW'` (English literal).
+        *   `SAFETY_ADMIN`: Filters for `type: 'SAFETY'` (English literal) AND `reviewStatus` is `'PENDING_SECOND_REVIEW'` (English literal).
+        *   `OPERATION_ADMIN`: Filters for `type: { $ne: 'SAFETY' }` (English literal) AND `reviewStatus` is `'PENDING_SECOND_REVIEW'` (English literal).
+        *   `DEPARTMENT_MANAGER` (and potentially other higher roles): May filter for `reviewStatus` in `['PENDING_FIRST_REVIEW', 'PENDING_SECOND_REVIEW']` across all types they can see.
+    *   The count is obtained using `Suggestion.countDocuments(pendingReviewFilter)`.
+
+## Debugging Notes:
+
+*   If dashboard counts are incorrect, verify that `queryConditions` in the logs correctly reflect the user's role and associated type filters (especially for Safety/Operation Admins).
+*   Check the `Status Count Map` in logs. A high number of `UNKNOWN` status suggestions indicates the `$switch` logic in `statusCountsAggregation` might not be correctly categorizing all suggestion states.
+*   Ensure that all status and type comparisons within `reports.js` consistently use **English literal strings** for suggestion statuses and types, as this matches database storage for these fields.
+*   Role comparisons should use the `ROLES.XXX` constants, which correctly align with the Chinese role names stored in the user documents.

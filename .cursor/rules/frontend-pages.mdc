@@ -1,0 +1,77 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# 前端页面结构
+
+系统的前端路由定义在 [client/src/App.js](mdc:client/src/App.js) 中，使用React Router进行路由管理。
+
+## 主要页面
+
+### 登录页面
+- 路径: `/login`
+- 组件: [client/src/pages/Login.js](mdc:client/src/pages/Login.js)
+- 功能: 用户认证和登录
+
+### 仪表盘
+- 路径: `/dashboard`
+- 组件: [client/src/pages/Dashboard.js](mdc:client/src/pages/Dashboard.js)
+- 功能: 显示系统概览和统计数据
+
+### 建议管理
+#### 建议列表
+- 路径: `/suggestions/list`
+- 组件: [client/src/pages/Suggestions/List.js](mdc:client/src/pages/Suggestions/List.js)
+- 功能: 查看和筛选建议列表
+
+#### 新建建议
+- 路径: `/suggestions/new`
+- 组件: [client/src/pages/Suggestions/New.js](mdc:client/src/pages/Suggestions/New.js)
+- 功能: 创建新的合理化建议
+
+#### 建议详情
+- 路径: `/suggestions/:id`
+- 组件: [client/src/pages/Suggestions/Detail.js](mdc:client/src/pages/Suggestions/Detail.js)
+- 功能: 查看建议详情、添加评论、下载附件
+
+#### 建议审核
+- 路径: `/suggestions/review`
+- 组件: [client/src/pages/Suggestions/Review/index.js](mdc:client/src/pages/Suggestions/Review/index.js)
+- 功能: 对建议进行审核(需要审核权限)
+
+#### 实施跟踪
+- 路径: `/suggestions/implementation`
+- 组件: [client/src/pages/Suggestions/Implementation/index.js](mdc:client/src/pages/Suggestions/Implementation/index.js)
+- 功能: 更新和跟踪建议实施状态(需要管理权限)
+
+### 报表页面
+- 路径: `/reports`
+- 组件: [client/src/pages/Reports.js](mdc:client/src/pages/Reports.js)
+- 功能: 统计分析和报表展示
+
+#### 部门绩效
+- 路径: `/reports/department-performance`
+- 组件: [client/src/pages/Reports/DepartmentPerformance/index.jsx](mdc:client/src/pages/Reports/DepartmentPerformance/index.jsx)
+- 功能: 展示部门绩效数据
+
+### 用户管理
+- 路径: `/users`
+- 组件: [client/src/pages/Admin/components/UserManagement.js](mdc:client/src/pages/Admin/components/UserManagement.js)
+- 功能: 管理用户(需要部门经理权限)
+
+### 修改密码
+- 路径: `/change-password`
+- 组件: [client/src/pages/ChangePassword.js](mdc:client/src/pages/ChangePassword.js)
+- 功能: 修改用户密码
+
+## 权限控制组件
+系统使用以下组件进行页面访问控制:
+- [client/src/components/PrivateRoute.js](mdc:client/src/components/PrivateRoute.js) - 基本认证检查
+- [client/src/components/ManagerRoute.js](mdc:client/src/components/ManagerRoute.js) - 管理员权限检查
+- [client/src/components/DepartmentManagerRoute.js](mdc:client/src/components/DepartmentManagerRoute.js) - 部门经理权限检查
+- [client/src/components/ReviewPermissionRoute.js](mdc:client/src/components/ReviewPermissionRoute.js) - 审核权限检查
+
+## 布局组件
+- [client/src/components/Layout/Layout.js](mdc:client/src/components/Layout/Layout.js) - 主布局组件
+- [client/src/components/Layout/Sidebar.js](mdc:client/src/components/Layout/Sidebar.js) - 侧边栏组件
